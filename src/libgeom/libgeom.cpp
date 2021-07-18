@@ -9,6 +9,13 @@ void copy_vector4_array(float* dst, const float* src, int num)
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
+	for (int i = 0; i < num; i++) 
+	{
+		__m256 pd = _mm256_load_ps(reinterpret_cast<const float*>(&dst[i]));
+		__m256 ps = _mm256_load_ps(reinterpret_cast<const float*>(&src[i]));
+		pd = ps;
+	}
+	
 #else
 	float* pd = dst;
 	const float* ps = src;
@@ -30,6 +37,17 @@ void add_vector4_array(float* dst, const float* src0, const float* src1, int num
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
+	for (int i = 0; i < num; i++)
+	{
+		__m256 pd = _mm256_load_ps(reinterpret_cast<const float*>(&dst[i]));
+		__m256 ps0 = _mm256_load_ps(reinterpret_cast<const float*>(&src0[i]));
+		__m256 ps1 = _mm256_load_ps(reinterpret_cast<const float*>(&src1[i]));
+
+		__m256 sum = _mm256_add_ps(ps0, ps1);
+		pd = sum;
+	}
+
+	
 #else
 	float* pd = dst;
 	const float* ps0 = src0;
@@ -53,6 +71,21 @@ void apply_matrix_vector4_array(float* dst, const float* src, const float* matri
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
+	for (int i = 0; i < num; i++)
+	{
+		__m256 pd = _mm256_load_ps(reinterpret_cast<const float*>(&dst[i]));
+
+		__m256 mul0 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i])),
+			_mm256_load_ps(reinterpret_cast<const float*>(&src[0])));
+		__m256 mul1 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i + 1])),
+			_mm256_load_ps(reinterpret_cast<const float*>(&src[1])));
+		__m256 mul2 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i + 2])),
+			_mm256_load_ps(reinterpret_cast<const float*>(&src[2])));
+		__m256 mul3 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i + 3])),
+			_mm256_load_ps(reinterpret_cast<const float*>(&src[3])));
+		
+		pd = _mm256_add_ps(_mm256_add_ps(_mm256_add_ps(mul0, mul1), mul2), mul3);
+	}
 #else
 	float* pd = dst;
 	const float* ps = src;
