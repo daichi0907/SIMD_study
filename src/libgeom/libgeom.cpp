@@ -16,7 +16,7 @@ void copy_vector4_array(float* dst, const float* src, int num)
 		
 		pd = ps;
 
-		alignas(32)float resultMem;
+		alignas(4)float resultMem;
 		_mm256_store_ps(reinterpret_cast<float*>(&resultMem), pd);
 	}
 	
@@ -50,7 +50,7 @@ void add_vector4_array(float* dst, const float* src0, const float* src1, int num
 		__m256 sum = _mm256_add_ps(ps0, ps1);
 		pd = sum;
 
-		alignas(32)float resultMem;
+		alignas(4)float resultMem;
 		_mm256_store_ps(reinterpret_cast<float*>(&resultMem), pd);
 	}
 
@@ -93,7 +93,7 @@ void apply_matrix_vector4_array(float* dst, const float* src, const float* matri
 		
 		pd = _mm256_add_ps(_mm256_add_ps(_mm256_add_ps(mul0, mul1), mul2), mul3);
 
-		alignas(32)float resultMem;
+		alignas(4)float resultMem;
 		_mm256_store_ps(reinterpret_cast<float*>(&resultMem), pd);
 	}
 #else
