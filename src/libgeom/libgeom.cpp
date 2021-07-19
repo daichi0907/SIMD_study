@@ -19,7 +19,7 @@ void copy_vector4_array(float* dst, const float* src, int num)
 		sum = ps;
 	}
 
-	_mm256_store_ps(dst, sum);
+	_mm256_store_ps(reinterpret_cast<float*>(dst), sum);
 	
 #else
 	float* pd = dst;
@@ -51,8 +51,7 @@ void add_vector4_array(float* dst, const float* src0, const float* src1, int num
 
 		sum = _mm256_add_ps(ps0, ps1);
 	}
-
-	_mm256_store_ps(dst, sum);
+	_mm256_store_ps(reinterpret_cast<float*>(dst), sum);
 	
 #else
 	float* pd = dst;
@@ -94,7 +93,7 @@ void apply_matrix_vector4_array(float* dst, const float* src, const float* matri
 		sum = _mm256_add_ps(_mm256_add_ps(_mm256_add_ps(mul0, mul1), mul2), mul3);
 	}
 
-	_mm256_store_ps(dst, sum);
+	_mm256_store_ps(reinterpret_cast<float*>(dst), sum);
 	
 #else
 	float* pd = dst;
