@@ -13,12 +13,11 @@ void copy_vector4_array(float* dst, const float* src, int num)
 	
 	for (int i = 0; i < num; i++) 
 	{
-		__m256 pd = _mm256_load_ps(reinterpret_cast<const float*>(&dst[i]));
-		__m256 ps = _mm256_load_ps(reinterpret_cast<const float*>(&src[i]));
+		__m256 ps = _mm256_load_ps(reinterpret_cast<const float*>(&src + 4 * i));
 		
 		sum = ps;
 
-		_mm256_store_ps(reinterpret_cast<float*>(&dst[i]), sum);
+		_mm256_store_ps(reinterpret_cast<float*>(&dst + 4 * i), sum);
 	}
 	
 #else
@@ -45,14 +44,14 @@ void add_vector4_array(float* dst, const float* src0, const float* src1, int num
 	__m256 sum = { 0 };
 	for (int i = 0; i < num; i++)
 	{
-		__m256 pd = _mm256_load_ps(reinterpret_cast<const float*>(&dst[i]));
-		__m256 ps0 = _mm256_load_ps(reinterpret_cast<const float*>(&src0[i]));
-		__m256 ps1 = _mm256_load_ps(reinterpret_cast<const float*>(&src1[i]));
+		__m256 ps0 = _mm256_load_ps(reinterpret_cast<const float*>(&src0 + 4 * i));
+		__m256 ps1 = _mm256_load_ps(reinterpret_cast<const float*>(&src1 + 4 * i));
 
 		sum = _mm256_add_ps(ps0, ps1);
 
-		_mm256_store_ps(reinterpret_cast<float*>(&dst[i]), sum);
+		_mm256_store_ps(reinterpret_cast<float*>(dst + 4 * i), sum);
 	}
+
 	
 #else
 	float* pd = dst;
@@ -77,24 +76,22 @@ void apply_matrix_vector4_array(float* dst, const float* src, const float* matri
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
-	__m256 sum = { 0 };
+	// （追記）この部分のほとんどは解説を見て実行したものです。
+	__m256 mat0 = _mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * 0]));
+	__m256 mat1 = _mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * 1]));
+	__m256 mat2 = _mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * 2]));
+	__m256 mat3 = _mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * 3]));
 	for (int i = 0; i < num; i++)
 	{
-		__m256 pd = _mm256_load_ps(reinterpret_cast<const float*>(&dst[i]));
-
-		__m256 mul0 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i])),
-			_mm256_load_ps(reinterpret_cast<const float*>(&src[0])));
-		__m256 mul1 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i + 1])),
-			_mm256_load_ps(reinterpret_cast<const float*>(&src[1])));
-		__m256 mul2 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i + 2])),
-			_mm256_load_ps(reinterpret_cast<const float*>(&src[2])));
-		__m256 mul3 = _mm256_mul_ps(_mm256_load_ps(reinterpret_cast<const float*>(&matrix[4 * i + 3])),
-			_mm256_load_ps(reinterpret_cast<const float*>(&src[3])));
-		
-		sum = _mm256_add_ps(_mm256_add_ps(_mm256_add_ps(mul0, mul1), mul2), mul3);
-
-		_mm256_store_ps(reinterpret_cast<float*>(&dst[i]), sum);
+		__m256 v0 = _mm256_load_ps(&src[4 * i]);
+		__m256 v = _mm256_mul_ps(mat0, _mm256_shuffle_ps(v0, v0, _MM_SHUFFLE(0, 0, 0, 0)));
+		v = _mm256_fmadd_ps(mat1, _mm256_shuffle_ps(v0, v0, _MM_SHUFFLE(1, 1, 1, 1)), v);
+		v = _mm256_fmadd_ps(mat2, _mm256_shuffle_ps(v0, v0, _MM_SHUFFLE(2, 2, 2, 2)), v);
+		v = _mm256_fmadd_ps(mat3, _mm256_shuffle_ps(v0, v0, _MM_SHUFFLE(3, 3, 3, 3)), v);
+		_mm256_store_ps(&dst[4 * i], v);
 	}
+
+	
 	
 #else
 	float* pd = dst;
